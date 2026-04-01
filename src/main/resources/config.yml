@@ -1,0 +1,26 @@
+# AnchorKillFix Configuration
+# Plugin by Bhaskar | dev.bhaskar
+
+settings:
+  # Radius in blocks to search for the anchor attacker
+  detection-radius: 12.0
+
+  # Print debug info to console for each anchor kill attribution
+  debug: false
+
+  # Log credited anchor kills to console (silent, no player messages)
+  log-kills: true
+
+messages:
+  # Prefix for admin/console messages only — supports & color codes
+  prefix: "&8[&6AnchorKillFix&8]"
+
+  # Sent to command sender on successful reload (OP/admin only)
+  reload-success: "&aConfiguration reloaded successfully."
+
+  # Sent to command sender if they lack permission
+  no-permission: "&cYou don't have permission to do that."
+
+  # Console-only log line — never sent to players
+  # Placeholders: {attacker} {victim}
+  console-kill-log: "{attacker} killed {victim} via Respawn Anchor (kill credited)"

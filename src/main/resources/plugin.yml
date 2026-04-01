@@ -1,0 +1,20 @@
+name: AnchorKillFix
+version: '${project.version}'
+main: dev.bhaskar.anchorkillfix.AnchorKillFix
+api-version: "1.21"
+description: Silently credits Respawn Anchor kills to the attacking player
+author: Bhaskar
+website: https://github.com/bhaskar/AnchorKillFix
+commands:
+  anchorkillfix:
+    description: AnchorKillFix management command
+    usage: /anchorkillfix reload
+    aliases: [akf]
+    permission: anchorkillfix.admin
+permissions:
+  anchorkillfix.reload:
+    description: Allows reloading the plugin config
+    default: op
+  anchorkillfix.admin:
+    description: Full admin access to AnchorKillFix
+    default: op
