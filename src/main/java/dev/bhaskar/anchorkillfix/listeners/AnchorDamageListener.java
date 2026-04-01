@@ -14,9 +14,8 @@ import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.util.Map;
+import java.util.Comparator;
 import java.util.Objects;
-import java.util.UUID;
 
 /**
  * Tracks respawn anchor interactions and anchor block damage context.
@@ -67,7 +66,7 @@ public final class AnchorDamageListener implements Listener {
     }
 
     /**
-     * Confirms anchor block damage belongs to the previously tracked anchor user.
+     * Captures block damage from respawn anchors and maps a victim to nearest attacker.
      *
      * @param event block damage event
      */
@@ -78,26 +77,15 @@ public final class AnchorDamageListener implements Listener {
             return;
         }
 
-        final Map<UUID, UUID> attackers = plugin.getAnchorAttackers();
-        final UUID attackerId = attackers.get(victim.getUniqueId());
-        if (attackerId == null) {
-            return;
-        }
-
-        final Player attacker = Bukkit.getPlayer(attackerId);
-        if (attacker == null || !attacker.isOnline() || !attacker.getWorld().equals(victim.getWorld())) {
-            plugin.clearVictim(victim.getUniqueId());
-            return;
-        }
-
         final double radius = configManager.getRadius();
         final double radiusSquared = radius * radius;
-        if (attacker.getLocation().distanceSquared(damager.getLocation()) > radiusSquared) {
-            plugin.clearVictim(victim.getUniqueId());
-            return;
-        }
 
-        plugin.trackAttacker(victim.getUniqueId(), attacker.getUniqueId());
+        Bukkit.getOnlinePlayers().stream()
+            .filter(player -> !player.getUniqueId().equals(victim.getUniqueId()))
+            .filter(player -> player.getWorld().equals(victim.getWorld()))
+            .filter(player -> player.getLocation().distanceSquared(victim.getLocation()) <= radiusSquared)
+            .min(Comparator.comparingDouble(player -> player.getLocation().distanceSquared(victim.getLocation())))
+            .ifPresent(attacker -> plugin.trackAttacker(victim.getUniqueId(), attacker.getUniqueId()));
     }
 
     /**

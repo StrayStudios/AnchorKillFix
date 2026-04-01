@@ -63,7 +63,7 @@ public final class PlayerDeathListener implements Listener {
         }
 
         final Player attacker = Bukkit.getPlayer(attackerId);
-        if (attacker == null || !attacker.isOnline() || !attacker.getWorld().equals(victim.getWorld())) {
+        if (attacker == null || !attacker.isOnline() || attacker.getWorld() != victim.getWorld()) {
             plugin.clearVictim(victim.getUniqueId());
             return;
         }
