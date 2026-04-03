@@ -18,33 +18,21 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Applies anchor kill credit before other death listeners consume killer data.
- */
 public final class PlayerDeathListener implements Listener {
+
     private final AnchorKillFix plugin;
     private final ConfigManager configManager;
 
-    /**
-     * Creates a new death listener.
-     *
-     * @param plugin        plugin instance
-     * @param configManager configuration manager
-     */
     public PlayerDeathListener(final AnchorKillFix plugin, final ConfigManager configManager) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.configManager = Objects.requireNonNull(configManager, "configManager");
     }
 
-    /**
-     * Rewrites last damage cause for respawn anchor deaths to credit the stored attacker.
-     *
-     * @param event death event
-     */
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onPlayerDeath(final PlayerDeathEvent event) {
         final Player victim = event.getEntity();
         final EntityDamageEvent lastDamage = victim.getLastDamageCause();
+
         if (!(lastDamage instanceof EntityDamageByBlockEvent damageByBlock)) {
             plugin.clearVictim(victim.getUniqueId());
             return;
@@ -58,9 +46,8 @@ public final class PlayerDeathListener implements Listener {
 
         final Map<UUID, UUID> attackers = plugin.getAnchorAttackers();
         final UUID attackerId = attackers.get(victim.getUniqueId());
-        if (attackerId == null) {
-            return;
-        }
+
+        if (attackerId == null) return;
 
         final Player attacker = Bukkit.getPlayer(attackerId);
         if (attacker == null || !attacker.isOnline() || attacker.getWorld() != victim.getWorld()) {
@@ -69,20 +56,19 @@ public final class PlayerDeathListener implements Listener {
         }
 
         final double damage = Math.max(victim.getHealth(), 0.1D);
-        final EntityDamageByEntityEvent synthetic = new EntityDamageByEntityEvent(
+        victim.setLastDamageCause(new EntityDamageByEntityEvent(
             attacker,
             victim,
             EntityDamageEvent.DamageCause.ENTITY_ATTACK,
             damage
-        );
-        victim.setLastDamageCause(synthetic);
+        ));
 
         if (configManager.isDebug()) {
-            plugin.getLogger().info("[AnchorKillFix] Credited anchor kill: " + attacker.getName() + " -> " + victim.getName());
-        }
-        if (configManager.isLogKills()) {
-            final String template = configManager.getMessage("console-kill-log");
-            final String message = template
+            plugin.getLogger().info("[DEBUG] Anchor kill credited: "
+                + attacker.getName() + " -> " + victim.getName()
+                + " (damage=" + String.format("%.2f", damage) + ")");
+        } else if (configManager.isLogKills()) {
+            final String message = configManager.getMessage("console-kill-log")
                 .replace("{attacker}", attacker.getName())
                 .replace("{victim}", victim.getName());
             plugin.getLogger().info(message);

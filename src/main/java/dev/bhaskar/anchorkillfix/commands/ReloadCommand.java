@@ -9,71 +9,41 @@ import org.bukkit.command.TabCompleter;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
-/**
- * Handles AnchorKillFix command execution and tab completion.
- */
 public final class ReloadCommand implements CommandExecutor, TabCompleter {
+
     private final AnchorKillFix plugin;
     private final ConfigManager configManager;
 
-    /**
-     * Creates a new command handler.
-     *
-     * @param plugin        plugin instance
-     * @param configManager configuration manager
-     */
     public ReloadCommand(final AnchorKillFix plugin, final ConfigManager configManager) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.configManager = Objects.requireNonNull(configManager, "configManager");
     }
 
-    /**
-     * Executes the management command.
-     *
-     * @param sender  command sender
-     * @param command command instance
-     * @param label   command label
-     * @param args    command arguments
-     * @return true when command was handled
-     */
     @Override
-    public boolean onCommand(final CommandSender sender, final Command command, final String label, final String[] args) {
-        if (args.length != 1 || !"reload".equalsIgnoreCase(args[0])) {
-            return false;
-        }
-
+    public boolean onCommand(final CommandSender sender, final Command command,
+                             final String label, final String[] args) {
         if (!sender.hasPermission("anchorkillfix.reload")) {
-            sender.sendMessage(configManager.getMessage("prefix") + " " + configManager.getMessage("no-permission"));
+            sender.sendMessage(configManager.getPrefix() + " " + configManager.getMessage("no-permission"));
             return true;
         }
 
-        configManager.reload();
-        sender.sendMessage(configManager.getMessage("prefix") + " " + configManager.getMessage("reload-success"));
-        if (configManager.isDebug()) {
-            plugin.getLogger().info("[AnchorKillFix] Configuration reloaded by " + sender.getName());
+        if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
+            configManager.load();
+            sender.sendMessage(configManager.getPrefix() + " " + configManager.getMessage("reload-success"));
+            return true;
         }
+
+        sender.sendMessage(configManager.getPrefix() + " Usage: /anchorkillfix reload");
         return true;
     }
 
-    /**
-     * Provides tab completion for command arguments.
-     *
-     * @param sender  command sender
-     * @param command command instance
-     * @param alias   command alias
-     * @param args    current arguments
-     * @return tab completion suggestions
-     */
     @Override
-    public List<String> onTabComplete(final CommandSender sender, final Command command, final String alias, final String[] args) {
+    public List<String> onTabComplete(final CommandSender sender, final Command command,
+                                      final String alias, final String[] args) {
         if (args.length == 1) {
-            final String current = args[0].toLowerCase(Locale.ROOT);
-            if ("reload".startsWith(current)) {
-                return Collections.singletonList("reload");
-            }
+            return Collections.singletonList("reload");
         }
         return Collections.emptyList();
     }

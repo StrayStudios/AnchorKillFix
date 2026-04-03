@@ -24,3 +24,4 @@ messages:
   # Console-only log line — never sent to players
   # Placeholders: {attacker} {victim}
   console-kill-log: "{attacker} killed {victim} via Respawn Anchor (kill credited)"
+  attacker-offline-log: "Anchor kill lost: attacker offline when {victim} died"
